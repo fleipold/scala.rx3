@@ -97,7 +97,11 @@ object Rx {
    * track of which other [[Rx]]s are used within that block (via their
    * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
    */
-  def apply[T](func: => T)(implicit ownerCtx: rx.Ctx.Owner): Rx.Dynamic[T] = ??? //TODO implement the interesting bit here
+  def apply[T](func: (rx.Ctx.Owner, rx.Ctx.Data) ?=> T)(implicit ownerCtx: rx.Ctx.Owner): Rx.Dynamic[T] = build(
+    (ownerCtx, dataCtx) => {
+      val r = func(using ownerCtx, dataCtx)
+      r
+  })(ownerCtx)
 
   def create[T](seed: T)(f: Var[T] => Unit): Rx[T] = {
     val v = Var[T](seed)
