@@ -5,7 +5,7 @@ import utest._
 
 object BasicTests extends TestSuite{
 
-  //We dont care about potential Rx leaks in BasicTest
+  //We don't care about potential Rx leaks in BasicTest
   import Ctx.Owner.Unsafe._
 
   def tests = utest.Tests {
