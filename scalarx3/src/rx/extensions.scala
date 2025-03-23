@@ -1,12 +1,15 @@
 package rx
 
+import monocle.Lens
+
 type Id[T] = T
 extension[T] (node: Rx[T]) {
 
-  def map[V](f: (rx.Ctx.Owner, rx.Ctx.Data) ?=> Id[T] => Id[V])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[V] = Rx.build { (ownerCtx, dataCtx) =>
-    node.addDownstream(dataCtx)
-    f(using ownerCtx, dataCtx)(node.toTry.get)
-  }(ownerCtx)
+  def map[V](f: (rx.Ctx.Owner, rx.Ctx.Data) ?=> Id[T] => Id[V])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[V] =
+    Rx.build { (ownerCtx, dataCtx) =>
+      node.addDownstream(dataCtx)
+      f(using ownerCtx, dataCtx)(node.toTry.get)
+    }(ownerCtx)
 
   def flatMap[V](f:  (rx.Ctx.Owner, rx.Ctx.Data) ?=> Id[T] => Id[Rx[V]])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[V] =
     Rx.build { (ownerCtx, dataCtx) =>
@@ -15,7 +18,6 @@ extension[T] (node: Rx[T]) {
       inner.downStream.add(dataCtx.contextualRx)
       inner.now
     }(ownerCtx)
-
 
   def filter(f: Id[T] => Boolean)(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[T] = ???
 
@@ -38,4 +40,14 @@ def foldImpl[V](start: Wrap[V],
   def reduce(f: (Id[T], Id[T]) => Id[T])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[T] = ???
 
   def foreach(f: T => Unit)(implicit ownerCtx: Ctx.Owner): Obs = node.trigger(f(node.now))
+}
+
+extension[T](base: Var[T]) {
+  def imap[V](read: Id[T] => Id[V])(write: Id[V] => Id[T])(implicit ownerCtx: Ctx.Owner): Var[V] = new Var.Isomorphic[T, V](base, read, write)
+
+  def zoom[V](read: Id[T] => Id[V])(write: (Id[T], Id[V]) => Id[T])(implicit ownerCtx: Ctx.Owner): Var[V] = new Var.Zoomed[T, V](base, read, write)
+
+  def zoom[V](lens: Lens[T, V])(implicit ownerCtx: Ctx.Owner): Var[V] = new Var.Zoomed[T, V](base, lens.get, (base, zoomed) => lens.set(zoomed)(base))
+
+ // def mapRead(read: Var[T] => T)(implicit ownerCtx: Ctx.Owner): Var[T] = macro rx.opmacros.MapReadMacro.impl[T]
 }
