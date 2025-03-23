@@ -52,7 +52,7 @@ somewhat like this:
 ## The Scala 3 - Way
 
 Now in Scala 3 we can implement the apply method to take a context function from owner and data context and
-wrap it into a function that takes owner and data context as explicit parameters, [like so](src/rx/Rx.scala:100):
+wrap it into a function that takes owner and data context as explicit parameters, [like so](https://github.com/fleipold/scala.rx3/blob/144de2c0c47b10e1f536644f8be8f6d027b1c7c7/scalarx3/src/rx/Rx.scala#L100):
 
 ~~~scala
   def apply[T](func: (rx.Ctx.Owner, rx.Ctx.Data) ?=> T)(implicit ownerCtx: rx.Ctx.Owner): Rx.Dynamic[T] =
